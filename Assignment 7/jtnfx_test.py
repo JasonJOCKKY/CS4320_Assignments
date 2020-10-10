@@ -3,6 +3,7 @@ import json
 
 import System
 import Student
+import RestoreData
 
 # 1. login - System.py
 # The login function takes a name and password and sets the user for the program. Verify that the correct user is created with this test, and use the json files to check that it adds the correct data to the user.
@@ -52,30 +53,134 @@ def test_changeGrade(grading_system):
 
     with open("Data/users.json") as f:
         users = json.load(f)
+    
+    RestoreData.restoreData()
 
     assert users[studentName]['courses'][course][assignment]['grade'] == afterGrade
 
 # 4. create_assignment Staff.py
 # This function allows the staff to create a new assignment. Verify that an assignment is created with the correct due date in the correct course in the database.
+def test_createAssignment(grading_system):
+    staffName = "goggins"
+    staffPassword = "augurrox"
+    course = "software_engineering"
+    newAssignment = "assignment_jtnfx"
+    newDueDate = "9/20/2020"
 
+    grading_system.login(staffName, staffPassword)
+    grading_system.usr.create_assignment(newAssignment, newDueDate, course)
+
+    with open("Data/courses.json") as f:
+        courses = json.load(f)
+
+    RestoreData.restoreData()
+
+    assert courses[course]['assignments'][newAssignment]['due_date'] == newDueDate
 
 # 5. add_student - Professor.py
 # This function allows the professor to add a student to a course. Verify that a student will be added to the correct course in the database.
+def test_addStudent(grading_system):
+    staffName = "goggins"
+    staffPassword = "augurrox"
+    course = "software_engineering"
+    newStudent = "akend3"
+
+    grading_system.login(staffName, staffPassword)
+    grading_system.usr.add_student(newStudent, course)
+
+    with open("Data/users.json") as f:
+        users = json.load(f)
+    
+    RestoreData.restoreData()
+
+    assert course in users[newStudent]['courses']
 
 # 6. drop_student Professor.py
 # This function allows the professor to drop a student in a course. Verify that the student is added and dropped from the correct course in the database.
+def test_dropStudent(grading_system):
+    staffName = "goggins"
+    staffPassword = "augurrox"
+    course = "software_engineering"
+    student = "yted91"
+
+    grading_system.login(staffName, staffPassword)
+    grading_system.usr.drop_student(student, course)
+
+    with open("Data/users.json") as f:
+        users = json.load(f)
+    
+    RestoreData.restoreData()
+
+    assert course not in users[student]['courses']
 
 # 7. submit_assignment - Student.py
 # This function allows a student to submit an assignment. Verify that the database is updated with the correct assignment, submission, submission dateand in the correct course.
+def test_submitAssignment(grading_system):
+    studentName = "akend3"
+    studentPassword = "123454321"
+    course = "databases"
+    assignment = "assignment1"
+    submission = assignment + "resubmission"
+    submissionDate = "8/4/2021"
+
+    grading_system.login(studentName, studentPassword)
+    grading_system.usr.submit_assignment(course, assignment, submission, submissionDate)
+
+    with open("Data/users.json") as f:
+        users = json.load(f)
+    
+    RestoreData.restoreData()
+
+    assert users[studentName]['courses'][course][assignment]['submission'] == submission
+    assert users[studentName]['courses'][course][assignment]['submission_date'] == submissionDate
+    
 
 # 8. check_ontime - Student.py
 # This function checks if an assignment is submitted on time. Verify that it will return true if the assignment is on time, and false if the assignment is late.
+def test_checkOntime(grading_system):
+    studentName = "akend3"
+    studentPassword = "123454321"
+    dueDate = "1/3/2020"
+    ontimeSubmissionDate = "1/2/2020"
+    lateSubmissionDate = "1/5/2020"
+
+    grading_system.login(studentName, studentPassword)
+
+    assert grading_system.usr.check_ontime(ontimeSubmissionDate, dueDate) == True
+    assert grading_system.usr.check_ontime(lateSubmissionDate, dueDate) == False
 
 # 9. check_grades - Student.py
 # This function returns the users grades for a specific course. Verify the correct grades are returned for the correct user.
+def test_checkGrades(grading_system):
+    studentName = "akend3"
+    studentPassword = "123454321"
+    course = "databases"
+
+    grading_system.login(studentName, studentPassword)
+    usrGrades = grading_system.usr.check_grades(course)
+
+    with open("Data/users.json") as f:
+        users = json.load(f)
+    
+    for [assignment, grade] in usrGrades:
+        assert grade == users[studentName]['courses'][course][assignment]['grade']
+
 
 # 10. view_assignments - Student.py
 # This function returns assignments and their due dates for a specific course. Verify that the correct assignments for the correct course are returned.
+def test_viewAssignments(grading_system):
+    studentName = "akend3"
+    studentPassword = "123454321"
+    course = "databases"
+
+    grading_system.login(studentName, studentPassword)
+    usrAssignments = grading_system.usr.view_assignments(course)
+
+    with open("Data/courses.json") as f:
+        courses = json.load(f)
+
+    for [assignment, dueDate] in usrAssignments:
+        assert dueDate == courses[course]['assignments'][assignment]['due_date']
 
 
 @pytest.fixture
