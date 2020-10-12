@@ -45,7 +45,6 @@ def test_changeGrade(grading_system):
     course = "software_engineering"
     assignment = "assignment2"
     studentName = "yted91"
-    beforeGrade = 22
     afterGrade = 50
 
     grading_system.login(staffName, staffPassword)
@@ -182,6 +181,36 @@ def test_viewAssignments(grading_system):
     for [assignment, dueDate] in usrAssignments:
         assert dueDate == courses[course]['assignments'][assignment]['due_date']
 
+# Custom tests
+# 11. add_student - Professor.py
+# A professor should not be able to add a student to the course that he is not teaching.
+def test_addStudent_jtnfx(grading_system):
+    staffName = "goggins"
+    staffPassword = "augurrox"
+    course = "comp_sci"
+    newStudentName = "yted91"
+
+    grading_system.login(staffName, staffPassword)
+    grading_system.usr.add_student(newStudentName, course)
+
+    with open("Data/users.json") as f:
+        users = json.load(f)
+    
+    RestoreData.restoreData()
+
+    assert course not in users[newStudentName]['courses']
+
+# 12. view_assignments - Student.py
+# A student can not view assignments from courses that he is not in.  Verify that the function returns nothing.
+def test_viewAssignments_jtnfx(grading_system):
+    studentName = "akend3"
+    studentPassword = "123454321"
+    course = "cloud_computing"
+
+    grading_system.login(studentName, studentPassword)
+    assert grading_system.usr.view_assignments(course) == []
+
+# 13. 
 
 @pytest.fixture
 def grading_system():
