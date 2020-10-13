@@ -30,8 +30,8 @@ def test_login(grading_system):
 def test_checkPassword(grading_system):
     username = "yted91"
     password1 = "imoutofpasswordnames"
-    password2 = "imoutofpasswordnames   "
-    password3 = "   imoutofpasswordnames"
+    password2 = "IMOUTOFPASSWORDNAMES"
+    password3 = "imout   ofpasswordnames"
 
     assert grading_system.check_password(username, password1)
     assert grading_system.check_password(username, password2)
@@ -113,7 +113,7 @@ def test_dropStudent(grading_system):
     assert course not in users[student]['courses']
 
 # 7. submit_assignment - Student.py
-# This function allows a student to submit an assignment. Verify that the database is updated with the correct assignment, submission, submission dateand in the correct course.
+# This function allows a student to submit an assignment. Verify that the database is updated with the correct assignment, submission, submission date and in the correct course.
 def test_submitAssignment(grading_system):
     studentName = "akend3"
     studentPassword = "123454321"
@@ -183,7 +183,7 @@ def test_viewAssignments(grading_system):
 
 # Custom tests
 # 11. add_student - Professor.py
-# A professor should not be able to add a student to the course that he is not teaching.
+# A professor should not be able to add a student to the course that he is not teaching.  Verify that the course does not appear on the student's course list.
 def test_addStudent_jtnfx(grading_system):
     staffName = "goggins"
     staffPassword = "augurrox"
@@ -210,7 +210,51 @@ def test_viewAssignments_jtnfx(grading_system):
     grading_system.login(studentName, studentPassword)
     assert grading_system.usr.view_assignments(course) == []
 
-# 13. 
+# 13. change_grade - Staff.py
+# Staffs can only change grades in the courses they are teaching.  Verify that the grade remains unchanged.
+def test_changeGrade_jtnfx(grading_system):
+    staffName = "goggins"
+    staffPassword = "augurrox"
+    course = "comp_sci"
+    student = "akend3"
+    assignment = "assignment1"
+    newGrade = 57
+
+    with open("Data/users.json") as f:
+        users = json.load(f)
+
+    odlGrade = users[student]['courses'][course][assignment]['grade']
+
+    grading_system.login(staffName, staffPassword)
+    grading_system.usr.change_grade(student, course, assignment, newGrade)
+
+    with open("Data/users.json") as f:
+        users = json.load(f)
+    
+    RestoreData.restoreData()
+    
+    assert odlGrade == users[student]['courses'][course][assignment]['grade']
+
+# 14. change_grade - Staff.py
+# Grade can not be changed for a student who is not in the course.
+def test_changeGrade2_jtnfx(grading_system):
+    staffName = "goggins"
+    staffPassword = "augurrox"
+    course = "software_engineering"
+    student = "akend3"
+    assignment = "assignment1"
+    newGrade = 57
+
+    grading_system.login(staffName, staffPassword)
+    grading_system.usr.change_grade(student, course, assignment, newGrade)
+
+# 15. login - System.py
+# Test if the system can handle a wrong username
+def test_login_jtnfx(grading_system):
+    username = "randomName"
+    password = "randomPassword"
+
+    grading_system.login(username, password)
 
 @pytest.fixture
 def grading_system():
